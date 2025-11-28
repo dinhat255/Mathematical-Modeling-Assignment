@@ -2,7 +2,7 @@ from PetriNet import PetriNet
 from BFS import bfs_reachable
 from DFS import dfs_reachable
 from BDD import bdd_reachable
-
+from DeadLock import check_deadlock
 
 def main():
     # === Task 1: Đọc PNML -> PetriNet ===
@@ -37,7 +37,21 @@ def main():
     except AttributeError:
         pass
 
+    # === Task 4: Deadlock Detection (ILP + BDD) ===
+    print("\n=== Task 4: Deadlock Detection (ILP + BDD) ===")
+    deadlock = check_deadlock(pn, bdd)
+    
+    if deadlock:
+        print("Result: Deadlock DETECTED.")
+        # Map back to place names for clearer output
+        dead_places = [pn.place_ids[i] for i, val in enumerate(deadlock) if val == 1]
+        print(f"Deadlock State (Places with tokens): {dead_places}")
+    else:
+        print("Result: No deadlock found.")
+
     print("Done.")
+
+    
 
 
 if __name__ == "__main__":
