@@ -1,20 +1,20 @@
 from collections import deque
 import numpy as np
-from PetriNet import PetriNet
+from src.PetriNet import PetriNet
 from typing import Set, Tuple
 
 
-def dfs_reachable(pn: PetriNet) -> Set[Tuple[int, ...]]:
-    # Initialize the stack with the initial marking
-    stack = [pn.M0]
+def bfs_reachable(pn: PetriNet) -> Set[Tuple[int, ...]]:
+    # Initialize the queue with the initial marking
+    queue = deque([pn.M0])
 
     # Set to store visited markings (as tuples for hashability)
     visited = set()
     visited.add(tuple(int(x) for x in pn.M0))
 
-    # DFS loop
-    while stack:
-        current_marking = stack.pop()
+    # BFS loop
+    while queue:
+        current_marking = queue.popleft()
 
         # Try to fire each transition (use I.shape[0] to get number of transitions)
         for t_idx in range(pn.I.shape[0]):
@@ -30,9 +30,9 @@ def dfs_reachable(pn: PetriNet) -> Set[Tuple[int, ...]]:
                     # Convert to tuple for hashing (convert np.int64 to int)
                     new_marking_tuple = tuple(int(x) for x in new_marking)
 
-                    # If not visited, add to stack and visited set
+                    # If not visited, add to queue and visited set
                     if new_marking_tuple not in visited:
                         visited.add(new_marking_tuple)
-                        stack.append(new_marking)
+                        queue.append(new_marking)
 
     return visited

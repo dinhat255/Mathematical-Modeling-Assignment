@@ -2,7 +2,7 @@ from typing import Tuple
 import numpy as np
 from pyeda.boolalg.bdd import BDDONE, BDDZERO
 from pyeda.inter import BinaryDecisionDiagram, bddvar
-from PetriNet import PetriNet
+from src.PetriNet import PetriNet
 
 
 def _initial_state_bdd(

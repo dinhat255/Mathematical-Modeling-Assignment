@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="ResourceAllocation" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <name>
+      <text>Resource Allocation System (1-Safe, Medium, Has Deadlock)</text>
+    </name>
+    <page id="page0">
+      
+      <!-- Shared Resources (2 resources) -->
+      <place id="R1_Free">
+        <name><text>Resource 1 Free</text></name>
+        <initialMarking><text>1</text></initialMarking>
+        <graphics><position x="300" y="100"/></graphics>
+      </place>
+      
+      <place id="R1_Used">
+        <name><text>Resource 1 Used</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="400" y="100"/></graphics>
+      </place>
+      
+      <place id="R2_Free">
+        <name><text>Resource 2 Free</text></name>
+        <initialMarking><text>1</text></initialMarking>
+        <graphics><position x="300" y="300"/></graphics>
+      </place>
+      
+      <place id="R2_Used">
+        <name><text>Resource 2 Used</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="400" y="300"/></graphics>
+      </place>
+      
+      <!-- Process A (needs R1 then R2) -->
+      <place id="PA_Idle">
+        <name><text>Process A Idle</text></name>
+        <initialMarking><text>1</text></initialMarking>
+        <graphics><position x="100" y="150"/></graphics>
+      </place>
+      
+      <place id="PA_HasR1">
+        <name><text>Process A Has R1</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="250" y="150"/></graphics>
+      </place>
+      
+      <place id="PA_Running">
+        <name><text>Process A Running</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="500" y="200"/></graphics>
+      </place>
+      
+      <!-- Process B (needs R2 then R1) -->
+      <place id="PB_Idle">
+        <name><text>Process B Idle</text></name>
+        <initialMarking><text>1</text></initialMarking>
+        <graphics><position x="100" y="250"/></graphics>
+      </place>
+      
+      <place id="PB_HasR2">
+        <name><text>Process B Has R2</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="250" y="250"/></graphics>
+      </place>
+      
+      <place id="PB_Running">
+        <name><text>Process B Running</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="500" y="250"/></graphics>
+      </place>
+      
+      <!-- Buffer/Queue places -->
+      <place id="Buffer_Empty">
+        <name><text>Buffer Empty</text></name>
+        <initialMarking><text>1</text></initialMarking>
+        <graphics><position x="600" y="100"/></graphics>
+      </place>
+      
+      <place id="Buffer_Full">
+        <name><text>Buffer Full</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="700" y="100"/></graphics>
+      </place>
+      
+      <place id="Output_Ready">
+        <name><text>Output Ready</text></name>
+        <initialMarking><text>0</text></initialMarking>
+        <graphics><position x="800" y="200"/></graphics>
+      </place>
+      
+      <!-- Process A Transitions -->
+      <transition id="TA_GetR1">
+        <name><text>A Get R1</text></name>
+        <graphics><position x="175" y="125"/></graphics>
+      </transition>
+      
+      <transition id="TA_GetR2">
+        <name><text>A Get R2</text></name>
+        <graphics><position x="375" y="175"/></graphics>
+      </transition>
+      
+      <transition id="TA_Release">
+        <name><text>A Release All</text></name>
+        <graphics><position x="600" y="200"/></graphics>
+      </transition>
+      
+      <!-- Process B Transitions -->
+      <transition id="TB_GetR2">
+        <name><text>B Get R2</text></name>
+        <graphics><position x="175" y="275"/></graphics>
+      </transition>
+      
+      <transition id="TB_GetR1">
+        <name><text>B Get R1</text></name>
+        <graphics><position x="375" y="225"/></graphics>
+      </transition>
+      
+      <transition id="TB_Release">
+        <name><text>B Release All</text></name>
+        <graphics><position x="600" y="250"/></graphics>
+      </transition>
+      
+      <!-- Buffer transitions -->
+      <transition id="T_Fill_Buffer">
+        <name><text>Fill Buffer</text></name>
+        <graphics><position x="650" y="150"/></graphics>
+      </transition>
+      
+      <transition id="T_Process_Output">
+        <name><text>Process Output</text></name>
+        <graphics><position x="750" y="150"/></graphics>
+      </transition>
+      
+      <transition id="T_Finalize">
+        <name><text>Finalize</text></name>
+        <graphics><position x="850" y="200"/></graphics>
+      </transition>
+      
+      <!-- Process A arcs -->
+      <arc id="A1" source="PA_Idle" target="TA_GetR1"/>
+      <arc id="A2" source="R1_Free" target="TA_GetR1"/>
+      <arc id="A3" source="TA_GetR1" target="PA_HasR1"/>
+      <arc id="A4" source="TA_GetR1" target="R1_Used"/>
+      
+      <arc id="A5" source="PA_HasR1" target="TA_GetR2"/>
+      <arc id="A6" source="R2_Free" target="TA_GetR2"/>
+      <arc id="A7" source="TA_GetR2" target="PA_Running"/>
+      <arc id="A8" source="TA_GetR2" target="R2_Used"/>
+      
+      <arc id="A9" source="PA_Running" target="TA_Release"/>
+      <arc id="A10" source="R1_Used" target="TA_Release"/>
+      <arc id="A11" source="R2_Used" target="TA_Release"/>
+      <arc id="A12" source="TA_Release" target="PA_Idle"/>
+      <arc id="A13" source="TA_Release" target="R1_Free"/>
+      <arc id="A14" source="TA_Release" target="R2_Free"/>
+      
+      <!-- Process B arcs -->
+      <arc id="A15" source="PB_Idle" target="TB_GetR2"/>
+      <arc id="A16" source="R2_Free" target="TB_GetR2"/>
+      <arc id="A17" source="TB_GetR2" target="PB_HasR2"/>
+      <arc id="A18" source="TB_GetR2" target="R2_Used"/>
+      
+      <arc id="A19" source="PB_HasR2" target="TB_GetR1"/>
+      <arc id="A20" source="R1_Free" target="TB_GetR1"/>
+      <arc id="A21" source="TB_GetR1" target="PB_Running"/>
+      <arc id="A22" source="TB_GetR1" target="R1_Used"/>
+      
+      <arc id="A23" source="PB_Running" target="TB_Release"/>
+      <arc id="A24" source="R1_Used" target="TB_Release"/>
+      <arc id="A25" source="R2_Used" target="TB_Release"/>
+      <arc id="A26" source="TB_Release" target="PB_Idle"/>
+      <arc id="A27" source="TB_Release" target="R1_Free"/>
+      <arc id="A28" source="TB_Release" target="R2_Free"/>
+      
+      <!-- Buffer arcs -->
+      <arc id="A29" source="PA_Running" target="T_Fill_Buffer"/>
+      <arc id="A30" source="Buffer_Empty" target="T_Fill_Buffer"/>
+      <arc id="A31" source="T_Fill_Buffer" target="Buffer_Full"/>
+      
+      <arc id="A32" source="PB_Running" target="T_Fill_Buffer"/>
+      
+      <arc id="A33" source="Buffer_Full" target="T_Process_Output"/>
+      <arc id="A34" source="T_Process_Output" target="Buffer_Empty"/>
+      <arc id="A35" source="T_Process_Output" target="Output_Ready"/>
+      
+      <arc id="A36" source="Output_Ready" target="T_Finalize"/>
+      
+    </page>
+  </net>
+</pnml>

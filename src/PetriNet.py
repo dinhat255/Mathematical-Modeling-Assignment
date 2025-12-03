@@ -77,6 +77,10 @@ class PetriNet:
         O = np.zeros((num_trans, num_places), dtype=int)
 
         # Extract arcs and build I and O matrices
+        # Track arcs for consistency verification
+        valid_arcs = []
+        invalid_arcs = []
+
         for arc in root.findall(".//pnml:arc", ns):
             source = arc.get("source")
             target = arc.get("target")
@@ -86,12 +90,64 @@ class PetriNet:
                 p_idx = place_idx[source]
                 t_idx = trans_idx[target]
                 I[t_idx, p_idx] = 1
+                valid_arcs.append((source, target))
 
             # Check if arc is from transition to place (O matrix)
             elif source in trans_idx and target in place_idx:
                 t_idx = trans_idx[source]
                 p_idx = place_idx[target]
                 O[t_idx, p_idx] = 1
+                valid_arcs.append((source, target))
+            else:
+                # Arc references missing node
+                invalid_arcs.append((source, target))
+
+        # CONSISTENCY VERIFICATION
+        # 1. Check for invalid arcs (missing source/target nodes)
+        if invalid_arcs:
+            print(f"WARNING: Found {len(invalid_arcs)} arcs with missing nodes:")
+            for src, tgt in invalid_arcs[:5]:  # Show first 5
+                print(f"  Arc from '{src}' to '{tgt}' references non-existent node")
+            if len(invalid_arcs) > 5:
+                print(f"  ... and {len(invalid_arcs) - 5} more")
+
+        # 2. Check for isolated nodes (no incoming or outgoing arcs)
+        connected_places = set()
+        connected_trans = set()
+        for src, tgt in valid_arcs:
+            if src in place_idx:
+                connected_places.add(src)
+            if src in trans_idx:
+                connected_trans.add(src)
+            if tgt in place_idx:
+                connected_places.add(tgt)
+            if tgt in trans_idx:
+                connected_trans.add(tgt)
+
+        isolated_places = set(place_ids) - connected_places
+        isolated_trans = set(trans_ids) - connected_trans
+
+        if isolated_places:
+            print(f"WARNING: Found {len(isolated_places)} isolated places (no arcs):")
+            for pid in list(isolated_places)[:5]:
+                pname = place_names[place_ids.index(pid)]
+                print(f"  Place '{pid}' ({pname})")
+            if len(isolated_places) > 5:
+                print(f"  ... and {len(isolated_places) - 5} more")
+
+        if isolated_trans:
+            print(
+                f"WARNING: Found {len(isolated_trans)} isolated transitions (no arcs):"
+            )
+            for tid in list(isolated_trans)[:5]:
+                tname = trans_names[trans_ids.index(tid)]
+                print(f"  Transition '{tid}' ({tname})")
+            if len(isolated_trans) > 5:
+                print(f"  ... and {len(isolated_trans) - 5} more")
+
+        # 3. Summary
+        if not invalid_arcs and not isolated_places and not isolated_trans:
+            print("CONSISTENCY CHECK: PASSED (no missing arcs or orphaned nodes)")
 
         # Create initial marking vector M0
         M0 = np.array(
